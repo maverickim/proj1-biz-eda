@@ -49,8 +49,9 @@
 
 #### 파일 목록
 
-* TB_RECIPE.csv : 2022년 ~ 2024년 데이터 병합. 불필요 컬럼 삭제
-* TB_RECIPE_CAT.csv : 'TB_RECIPE.csv' 에 재료 수, 양념 수 추가
+* recipe_coll.csv : 2022년 ~ 2024년 데이터 수집 및 병합 데이터. 불필요 컬럼 삭제
+* recipe_preproc.csv : 전처리 데이터. 'recipe_coll.csv' 에서 결측치 제거
+* recipe_postproc.csv : 가공 데이터. 'recipe_preproc.csv' 에서 재료수, 양념수 추가
 
 
 
