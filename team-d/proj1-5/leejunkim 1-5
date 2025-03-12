@@ -1,0 +1,152 @@
+pip install wordcloud matplotlib
+pip install konlpy wordcloud matplotlib
+pip install --upgrade --force-reinstall jpype1
+
+import re
+import pandas as pd
+
+def del_special_letter(s):
+    """특수 문자 제거 함수"""
+    return re.sub(r"[^\uAC00-\uD7A3 0-9a-zA-Z\s]", "", s)
+
+def handle_space(s_list):
+    """공백 제거 및 빈 문자열 처리 함수"""
+    s_list = [s.strip() for s in s_list]  # 양쪽 공백 제거
+    return [s for s in s_list if s]  # 빈 문자열 제거
+
+# 파일 경로
+file_path = r"C:\python\29cm_reviews.csv"
+
+# 1. CSV 파일 읽기
+df = pd.read_csv(file_path, encoding='utf-8')
+
+# 2. '리뷰내용' 컬럼에 대해 특수 문자 제거 및 공백 처리
+df['리뷰내용_불용어처리'] = df['리뷰내용'].apply(lambda x: ' '.join(handle_space(del_special_letter(str(x)).split())))
+
+# 3. 결과 CSV 파일로 저장
+output_path = r"C:\python\fastcampus\cleaned_reviews.csv"
+df.to_csv(output_path, index=False, encoding='utf-8-sig')
+
+print("불용어 처리된 CSV 파일이 저장되었습니다.")
+
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+
+# 한글 폰트 설정 (Windows의 경우)
+plt.rcParams['font.family'] = 'Malgun Gothic'  # 'Malgun Gothic'은 Windows 기본 한글 폰트
+plt.rcParams['axes.unicode_minus'] = False  # 마이너스(-) 기호 깨짐 방지
+
+# 2. 워드클라우드 생성용 텍스트 결합
+all_text = ' '.join(df['리뷰내용_불용어처리'].dropna())  # NaN 제거 후 모든 텍스트 합침
+
+# 3. 워드클라우드 생성
+wordcloud = WordCloud(
+    font_path='malgun.ttf',  # 한글 폰트 경로 설정 (Windows의 경우 Malgun Gothic 사용)
+    background_color='white',
+    width=800,
+    height=600,
+    max_words=100,
+    colormap='viridis'
+).generate(all_text)
+
+# 4. 워드클라우드 시각화
+plt.figure(figsize=(10, 8))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')  # 축 제거
+plt.title("리뷰내용 워드클라우드")
+plt.show()
+
+def remove_stopwords(text, stopwords):
+    """불용어 제거 함수"""
+    words = text.split()
+    filtered_words = [word for word in words if word not in stopwords]
+    return ' '.join(filtered_words)
+
+# 불용어 리스트 설정
+stopwords = ['좋아요', '너무', '좀', '더', '정말', '매우', '그냥', '때문에', '이런', '저런', '거의']
+
+# 파일 경로
+file_path = r"C:\python\fastcampus\cleaned_reviews.csv"
+
+# 1. CSV 파일 읽기
+df = pd.read_csv(file_path, encoding='utf-8-sig')
+
+# 2. '리뷰내용_불용어처리' 컬럼에서 불용어 제거
+df['리뷰내용_불용어처리_클린'] = df['리뷰내용_불용어처리'].apply(lambda x: remove_stopwords(str(x), stopwords))
+
+# 3. 워드클라우드 생성용 텍스트 결합
+all_text = ' '.join(df['리뷰내용_불용어처리_클린'].dropna())  # NaN 제거 후 모든 텍스트 합침
+
+# 4. 워드클라우드 생성
+wordcloud = WordCloud(
+    font_path='malgun.ttf',  # 한글 폰트 경로 설정 (Windows의 경우 Malgun Gothic 사용)
+    background_color='white',
+    width=800,
+    height=600,
+    max_words=100,
+    colormap='viridis'
+).generate(all_text)
+
+# 5. 워드클라우드 시각화
+plt.figure(figsize=(10, 8))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')  # 축 제거
+plt.title("리뷰내용 워드클라우드 (불용어 제거)")
+plt.show()
+
+import re
+import pandas as pd
+from konlpy.tag import Okt
+from wordcloud import WordCloud
+import matplotlib.pyplot as plt
+import jpype
+if not jpype.isJVMStarted():
+    jpype.startJVM()
+
+def del_special_letter(s):
+    """특수 문자 제거 함수"""
+    return re.sub(r"[^\uAC00-\uD7A3 0-9a-zA-Z\s]", "", s)
+
+def handle_space(s_list):
+    """공백 제거 및 빈 문자열 처리 함수"""
+    s_list = [s.strip() for s in s_list]  # 양쪽 공백 제거
+    return [s for s in s_list if s]  # 빈 문자열 제거
+
+def extract_adjectives(text, okt):
+    """형용사 추출 함수"""
+    words = okt.pos(text, norm=True, stem=True)  # 형태소 분석, 기본형 반환
+    adjectives = [word for word, pos in words if pos == 'Adjective']  # 품사가 'Adjective'인 단어만 추출
+    return ' '.join(adjectives)
+
+# 파일 경로
+file_path = r"C:\python\29cm_reviews.csv"
+
+# 1. CSV 파일 읽기
+df = pd.read_csv(file_path, encoding='utf-8-sig')
+
+# 2. Okt 형태소 분석기 초기화
+okt = Okt()
+
+# 3. '리뷰내용_불용어처리' 컬럼에서 형용사만 추출
+df['형용사_추출'] = df['리뷰내용_불용어처리'].apply(lambda x: extract_adjectives(str(x), okt))
+
+# 4. 워드클라우드 생성용 텍스트 결합
+all_text = ' '.join(df['형용사_추출'].dropna())  # NaN 제거 후 모든 텍스트 합침
+
+# 5. 워드클라우드 생성
+wordcloud = WordCloud(
+    font_path='malgun.ttf',  # 한글 폰트 경로 설정 (Windows의 경우 Malgun Gothic 사용)
+    background_color='white',
+    width=800,
+    height=600,
+    max_words=100,
+    colormap='viridis'
+).generate(all_text)
+
+# 6. 워드클라우드 시각화
+plt.figure(figsize=(10, 8))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')  # 축 제거
+plt.title("리뷰내용 형용사 워드클라우드")
+plt.show()
+
