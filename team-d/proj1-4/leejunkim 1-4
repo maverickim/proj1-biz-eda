@@ -1,0 +1,58 @@
+import pandas as pd
+
+df = pd.read_csv('/Users/Jooah_kim/Downloads/ga_innercircle.csv')
+df
+
+df.info()
+
+# Display the shape of the DataFrame
+display(df.shape)
+
+# Display the first few rows
+display(df.head())
+
+# Display the last few rows
+display(df.tail())
+
+# Display DataFrame information
+display(df.info())
+
+# Display descriptive statistics for numerical columns
+display(df.describe())
+
+# Display descriptive statistics for categorical columns
+display(df.describe(include='object'))
+
+df.hist(figsize=(12, 12), bins=100)
+
+df['event_name'].value_counts()
+
+print(df.loc[0, "event_params"])
+
+df.info()
+
+# JSON 형식의 데이터를 파싱하여 새로운 컬럼 생성 및 기존 컬럼 삭제
+def parse_json_columns(df):
+    for column in df.columns:
+        # `{`로 시작하는 문자열만 처리
+        if df[column].astype(str).str.startswith('{').any():
+            # JSON 데이터를 파싱하여 새로운 컬럼 생성
+            def parse_json(row):
+                try:
+                    return json.loads(row) if isinstance(row, str) else {}
+                except json.JSONDecodeError:
+                    return {}
+
+            # 파싱된 데이터를 데이터프레임으로 변환
+            parsed_df = df[column].apply(parse_json).apply(pd.Series)
+
+            # 기존 데이터프레임과 병합
+            df = pd.concat([df, parsed_df], axis=1)
+
+            # 기존 컬럼 삭제
+            df.drop(columns=[column], inplace=True)
+
+    return df
+
+# 데이터 파싱 실행
+parsed_df = parse_json_columns(df)
